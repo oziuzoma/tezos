@@ -1,0 +1,31 @@
+name: Sync forked repo and push to EC2 instance on AWS
+
+on:
+  schedule:
+  - cron: '0 7 * * 1,4' # every Monday and Thursday at 7am 
+#   push:
+#     branches:
+#       - master
+  workflow_dispatch: # on button click
+jobs:
+  sync: 
+    runs-on: ubuntu-latest
+    name: Sync fork repo
+    steps:
+      - uses: tgymnich/fork-sync@v1.4
+        with:
+          token: ${{ secrets.OZI_TOKEN }}
+          owner: oziuzoma
+          base: master
+          head: master
+  
+      - name: Checkout the files
+        uses: actions/checkout@v2
+
+      - name: Deploy to Server 1
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.DNS_NAME }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          TARGET: ${{ secrets.TARGET_DIR }}
